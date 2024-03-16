@@ -64,8 +64,8 @@ async def upload_file():
 
             # if video_info is None:
             #     return 'Failed to get video information.', 400
-            await upload_to_supabase(videoId, title, channelId)
             await upload_to_s3(file, os.getenv('AWS_S3_UNPROCESSED_BUCKET'), videoId)
+            await upload_to_supabase(videoId, title, channelId)
             return f'File {title} uploaded successfully!'
     except Exception as e:
         print(f"An error occurred: {str(e)}")
