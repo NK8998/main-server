@@ -4,6 +4,14 @@ from botocore.exceptions import NoCredentialsError
 import os
 import ffmpeg
 from pprint import pprint 
+from supabase import create_client
+from dotenv import load_dotenv
+load_dotenv()
+
+
+url = os.getenv("SUPABASE_URL")
+key = os.getenv("SUPABASE_KEY")
+supabase = create_client(url, key)
 
 
 def validate_file(extension):
@@ -38,6 +46,7 @@ async def upload_file():
         file = request.files['video']
         videoId = request.form['videoId']
         title = request.form['title']
+        channelId = request.form['channelId']
 
         extension = os.path.splitext(title)[1]
 
@@ -55,8 +64,8 @@ async def upload_file():
 
             # if video_info is None:
             #     return 'Failed to get video information.', 400
-            upload_to_supabase()
-            upload_to_s3(file, os.getenv('AWS_S3_BUCKET_NAME'), videoId)
+            await upload_to_supabase(videoId, title, channelId)
+            await upload_to_s3(file, os.getenv('AWS_S3_UNPROCESSED_BUCKET'), videoId)
             return f'File {title} uploaded successfully!'
     except Exception as e:
         print(f"An error occurred: {str(e)}")
@@ -116,10 +125,13 @@ async def upload_file():
 #         if os.path.exists(file_path):
 #             os.remove(file_path)
 
-def upload_to_supabase():
-    pass
+async def upload_to_supabase(videoId, title, channelId):
+    data, count =  supabase.table('video-metadata').insert({"video_id": videoId, "title": title, "channel_id": channelId}).execute()
+    data2, count2 =  supabase.table('video-queue').insert({"video_id": videoId}).execute()
 
-def upload_to_s3(file, bucket, videoId):
+    print(data2)
+
+async def upload_to_s3(file, bucket, videoId):
 
     s3_client = boto3.client('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                              aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
