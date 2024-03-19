@@ -1,11 +1,13 @@
 from flask import request
 import boto3
 from botocore.exceptions import NoCredentialsError
+from boto3.s3.transfer import S3Transfer, TransferConfig
 import os
 import ffmpeg
 from pprint import pprint 
 from supabase import create_client
 from dotenv import load_dotenv
+import threading
 load_dotenv()
 
 
@@ -55,8 +57,8 @@ async def upload_file():
             return 'Invalid file type.', 400
 
         if file:
-            # name = f'v{videoId}{title}'
-            # video_info = await get_video_info(file, name)
+            name = f'v{videoId}{title}'
+            video_path = await get_video_info(file, name)
             # if video_info:
             #     pprint(video_info)
             #     # category = categorize_transcoding_time(video_info)
@@ -64,13 +66,33 @@ async def upload_file():
 
             # if video_info is None:
             #     return 'Failed to get video information.', 400
-            await upload_to_s3(file, os.getenv('AWS_S3_UNPROCESSED_BUCKET'), videoId)
+            await upload_to_s3(video_path, os.getenv('AWS_S3_UNPROCESSED_BUCKET'), videoId)
             await upload_to_supabase(videoId, title, channelId)
+            if os.path.exists(video_path):
+                os.remove(video_path)
+                
             return f'File {title} uploaded successfully!'
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return 'An error occurred.', 500
-        
+
+async def get_video_info(file, name):
+   # Get the absolute path to the directory of the current script
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Get the absolute path to the 'uploads' directory
+    uploads_dir = os.path.join(current_dir, 'uploads')
+
+    # Ensure 'uploads' directory exists
+    os.makedirs(uploads_dir, exist_ok=True)
+
+    # Create the path for the file inside the 'uploads' directory
+    file_path = os.path.join(uploads_dir, name)
+
+    # Save the file
+    file.save(file_path)
+    return file_path
+    print(file_path)  
 
 # async def get_video_info(file, name):
 #    # Get the absolute path to the directory of the current script
@@ -131,16 +153,32 @@ async def upload_to_supabase(videoId, title, channelId):
 
     print(data2)
 
-async def upload_to_s3(file, bucket, videoId):
 
-    s3_client = boto3.client('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+class ProgressPercentage(object):
+    def __init__(self, filename):
+        self._filename = filename
+        self._size = float(os.path.getsize(filename))
+        self._seen_so_far = 0
+        self._lock = threading.Lock()
+
+    def __call__(self, bytes_amount):
+        with self._lock:
+            self._seen_so_far += bytes_amount
+            percentage = (self._seen_so_far / self._size) * 100
+            print(f"{self._filename}  {percentage}%")
+
+async def upload_to_s3(file, bucket, videoId):
+    s3_resource = boto3.resource('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                              aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
 
+    config = TransferConfig(use_threads=True, multipart_threshold=1024**2, multipart_chunksize=1024**2)
+
     try:
-        s3_client.upload_fileobj(file, bucket, videoId)
+        s3_resource.meta.client.upload_file(file, bucket, videoId, Config=config, Callback=ProgressPercentage(file))
     except NoCredentialsError:
         print("Credentials not available")
         return False
 
     return True
+
 
