@@ -8,6 +8,7 @@ from pprint import pprint
 from supabase import create_client
 from dotenv import load_dotenv
 import threading
+import random
 load_dotenv()
 
 
@@ -35,6 +36,30 @@ def validate_file(extension):
 #         return 'moderate'
 #     else:
 #         return 'long'
+
+async def get_instance_id():
+    client = boto3.client(
+        'autoscaling',
+        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+        region_name='ap-south-1'
+    )
+
+    response = client.describe_auto_scaling_instances()
+    instances = response['AutoScalingInstances']
+    original_instance_id = os.getenv('AWS_ORIGINAL_INSTANCE_ID')
+    instance_ids = [instance['InstanceId'] for instance in instances]
+
+    # Add the original instance id to the list
+    instance_ids.append(original_instance_id)
+
+    print(instance_ids)
+    # Pick a random id from the list
+    random_id = random.choice(instance_ids)
+    print(instance_ids, random_id)
+
+    return random_id
+
 
 
 async def upload_file():
@@ -148,8 +173,10 @@ async def get_video_info(file, name):
 #             os.remove(file_path)
 
 async def upload_to_supabase(videoId, title, channelId):
+    #check if instance is indeed on
+    instance_id = await get_instance_id()
     data, count =  supabase.table('video-metadata').insert({"video_id": videoId, "title": title, "channel_id": channelId}).execute()
-    data2, count2 =  supabase.table('video-queue').insert({"video_id": videoId}).execute()
+    data2, count2 =  supabase.table('video-queue').insert({"video_id": videoId, "state": "unprocessed", 'instance_id': instance_id}).execute()
 
     print(data2)
 
