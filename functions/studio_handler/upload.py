@@ -72,10 +72,11 @@ async def upload_file():
 
         file = request.files['video']
         videoId = request.form['videoId']
-        title = request.form['title']
+        full_title = request.form['title']
         channelId = request.form['channelId']
-
-        extension = os.path.splitext(title)[1]
+        name_parts = os.path.splitext(full_title)
+        extension = name_parts[1]
+        title = name_parts[0]
 
         validate_message = validate_file(extension)
         if validate_message == 'invalid':

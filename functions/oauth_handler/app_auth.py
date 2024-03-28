@@ -1,4 +1,5 @@
 from flask import request, jsonify, make_response, redirect
+from datetime import datetime, timedelta
 
 def verify_cookie():
     cookie_scid = request.cookies.get('SCID')
@@ -31,13 +32,19 @@ def set_cookies():  # Function name change for clarity
     }
     return jsonify(response_data)  # Return as JSON
 
+
 def web_app_auth():
     user_id = request.args.get('userID')
     target = request.args.get('target')
     channel_id = "UC" + user_id  
 
     response = make_response(redirect(f"http://localhost:{target}"))
-    response.set_cookie("SUID", user_id, httponly=True)
-    response.set_cookie("SCID", channel_id, httponly=True)
+    
+    # Set the cookies to expire in 30 days
+    expires = datetime.now()
+    expires = expires + timedelta(days=30)
+    
+    response.set_cookie("SUID", user_id, expires=expires, httponly=True)
+    response.set_cookie("SCID", channel_id, expires=expires, httponly=True)
 
     return response
