@@ -12,11 +12,11 @@ def basic_authentication():
     if request.method.lower() == 'options':
         return Response()  # Or return Response('', status=200)
 
-from functions.check import check
-from functions.oauth_handler.app_auth import verify_cookie, set_cookies, web_app_auth
-from functions.studio_handler.upload import upload_file  
-from functions.client_handler.get_playing_video import get_playing_video
-from functions.client_handler.get_recommended_videos import get_recommended_videos
+from endpoints.check import check
+from endpoints.oauth_handler.app_auth import verify_cookie, set_cookies, web_app_auth, verify_credentials
+from endpoints.studio_handler.upload import upload_file  
+from endpoints.client_handler.get_playing_video import get_playing_video
+from endpoints.client_handler.get_recommended_videos import get_recommended_videos
 
 
 app.route('/check', methods=['GET', "OPTIONS"])(check)
@@ -34,6 +34,7 @@ app.route('/upload', methods=['POST', 'GET', 'OPTIONS'])(upload_file)
 # studio
 
 # client
+app.route('/verify-credentials', methods=['POST', 'GET', 'OPTIONS'])(verify_credentials)
 app.route('/browse', methods=['POST', 'GET', 'OPTIONS'])(get_recommended_videos)
 app.route('/watch-video', methods=['POST', 'GET', 'OPTIONS'])(get_playing_video)
 # client
