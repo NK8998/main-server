@@ -155,7 +155,7 @@ async def upload_to_s3(file, bucket, user_id, file_name):
         return None
 
     # Generate the URL of the uploaded file
-    file_url = f"https://{os.getenv('AWS_S3_USER_DATA_BUCKET')}.s3.ap-south-1.amazonaws.com/{user_id}/{file_name}"
+    file_url = f"{os.getenv('CLOUDFRONT_URL')}/{user_id}/{file_name}"
 
     return file_url
 
