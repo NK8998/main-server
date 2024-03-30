@@ -115,12 +115,11 @@ async def generate_pfp(user_id, display_name, channel_id):
     
   
     script_directory = os.path.dirname(os.path.realpath(__file__))
-        # Change the working directory
     os.chdir(script_directory)
 
     command = [
     "ffmpeg", "-loglevel", "debug", "-f", "lavfi", "-i", f"color=c=0x{hex}:s=88x88:d=5", "-vf",
-    f"[in]drawtext=fontfile=./_font/RobotoFlex-Regular.ttf:fontsize=72:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text={letter}[out]",
+    f"[in]drawtext=fontfile=./_font/RobotoFlex-Regular.ttf:fontsize=50:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text={letter}[out]",
     "-frames:v", "1", f"{user_id}.png"
     ]
 
@@ -156,7 +155,7 @@ async def upload_to_s3(file, bucket, user_id, file_name):
         return None
 
     # Generate the URL of the uploaded file
-    file_url = f"{os.getenv('CLOUDFRONT_URL')}/{user_id}/{file_name}"
+    file_url = f"https://{os.getenv('AWS_S3_USER_DATA_BUCKET')}.s3.ap-south-1.amazonaws.com/{user_id}/{file_name}"
 
     return file_url
 
