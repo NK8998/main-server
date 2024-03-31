@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=['http://localhost:5175', 'http://localhost:5173'], supports_credentials=True)
+CORS(app, origins=['http://localhost:5175', 'http://localhost:5173', 'http://localhost:5174'], supports_credentials=True)
 
 @app.before_request
 def basic_authentication():
@@ -15,6 +15,7 @@ def basic_authentication():
 from endpoints.check import check
 from endpoints.oauth_handler.app_auth import verify_cookie, set_cookies, web_app_auth, verify_credentials
 from endpoints.studio_handler.upload import upload_file  
+from endpoints.studio_handler.additional_video_data import additional_video_data
 from endpoints.client_handler.get_playing_video import get_playing_video
 from endpoints.client_handler.get_recommended_videos import get_recommended_videos
 
@@ -31,6 +32,7 @@ app.route('/Web-App-Auth', methods=['GET', "OPTIONS"])(web_app_auth)
 
 # studio
 app.route('/upload', methods=['POST', 'GET', 'OPTIONS'])(upload_file)
+app.route('/additional-video-data', methods=['POST', 'GET', 'OPTIONS'])(additional_video_data)
 # studio
 
 # client

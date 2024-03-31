@@ -38,7 +38,7 @@ async def generate_pfp(user_id, display_name, channel_id):
 
     command = [
     "ffmpeg", "-loglevel", "debug", "-f", "lavfi", "-i", f"color=c=0x{hex}:s=88x88:d=5", "-vf",
-    f"[in]drawtext=fontfile=./_font/RobotoFlex-Regular.ttf:fontsize=72:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text={letter}[out]",
+    f"[in]drawtext=fontfile=./_font/RobotoFlex-Regular.ttf:fontsize=50:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text={letter}[out]",
     "-frames:v", "1", f"{user_id}.png"
     ]
 
@@ -80,5 +80,6 @@ async def upload_to_s3(file, bucket, user_id, file_name):
 
 
 async def upload_to_supabase(user_id, channel_id, pfp_url, display_name):
-    supabase.table('user-info').insert({'user_id': user_id, 'channel_id': channel_id, 'pfp_url': pfp_url, 'display_name': display_name, 'handle': f'@{display_name}' }).execute()
-    pass
+    data, count = supabase.table('user-info').insert({'user_id': user_id, 'channel_id': channel_id, 'pfp_url': pfp_url, 'display_name': display_name, 'handle': f'@{display_name}' }).execute()
+    print(data)
+

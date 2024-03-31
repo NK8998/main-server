@@ -77,7 +77,7 @@ async def upload_file():
         full_title = request.form['title']
         channelId = request.form['channelId']
         name_parts = os.path.splitext(full_title)
-        extension = name_parts[1]
+        extension = name_parts[1].lower()
         title = name_parts[0]
 
         validate_message = validate_file(extension)
@@ -108,14 +108,14 @@ async def get_video_info(file, name):
    # Get the absolute path to the directory of the current script
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Get the absolute path to the 'uploads' directory
-    uploads_dir = os.path.join(current_dir, 'uploads')
+    # Get the absolute path to the 'videos' directory
+    videos_dir = os.path.join(current_dir, 'videos')
 
-    # Ensure 'uploads' directory exists
-    os.makedirs(uploads_dir, exist_ok=True)
+    # Ensure 'videos' directory exists
+    os.makedirs(videos_dir, exist_ok=True)
 
-    # Create the path for the file inside the 'uploads' directory
-    file_path = os.path.join(uploads_dir, name)
+    # Create the path for the file inside the 'videos' directory
+    file_path = os.path.join(videos_dir, name)
 
     # Save the file
     file.save(file_path)
@@ -126,14 +126,14 @@ async def get_video_info(file, name):
 #    # Get the absolute path to the directory of the current script
 #     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-#     # Get the absolute path to the 'uploads' directory
-#     uploads_dir = os.path.join(current_dir, 'uploads')
+#     # Get the absolute path to the 'videos' directory
+#     videos_dir = os.path.join(current_dir, 'videos')
 
-#     # Ensure 'uploads' directory exists
-#     os.makedirs(uploads_dir, exist_ok=True)
+#     # Ensure 'videos' directory exists
+#     os.makedirs(videos_dir, exist_ok=True)
 
-#     # Create the path for the file inside the 'uploads' directory
-#     file_path = os.path.join(uploads_dir, name)
+#     # Create the path for the file inside the 'videos' directory
+#     file_path = os.path.join(videos_dir, name)
 
 #     # Save the file
 #     file.save(file_path)
