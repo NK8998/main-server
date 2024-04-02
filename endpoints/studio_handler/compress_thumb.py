@@ -17,13 +17,17 @@ async def compress_thumb(img_path, name, max_width= 720, max_height=404):
     if original_width > max_width or original_height > max_height:
         image.thumbnail((max_width, max_height), Image.ANTIALIAS)
 
+    #Get current scripts directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Get the absolute path to the 'compressed_images' directory
+    compressed_images_dir = os.path.join(current_dir, 'compressed_images')
+
     # Create the directory if it doesn't exist
-    directory = "compressed_images"
-    os.makedirs(directory, exist_ok=True)
+    os.makedirs(compressed_images_dir, exist_ok=True)
 
     # Create a temporary file path for saving the compressed image
-    temp_path = os.path.join(directory, f"{name}.jpg")
-
+    temp_path = os.path.join(compressed_images_dir, f"{name}.jpg")
 
     # Perform iterative compression until the image size is less than the target size
     while True:

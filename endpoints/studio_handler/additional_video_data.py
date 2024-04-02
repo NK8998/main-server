@@ -83,10 +83,11 @@ async def additional_video_data():
 
         if file:
             img_path = await move_thumb(file, random_id_str)
-            compress_thumb_path = await compress_thumb(img_path, random_id_str)
+            compressed_thumb_path = await compress_thumb(img_path, random_id_str)
             os.remove(img_path)
             bucket = os.getenv('AWS_PROCESSED_BUCKET')
-            file_url = await upload_to_s3(compress_thumb_path, bucket, video_id)
+            file_url = await upload_to_s3(compressed_thumb_path, bucket, video_id)
+            os.remove(compressed_thumb_path)
             await upload_to_supabase(file_url, video_id)
 
         return 'additional data saved', 200
