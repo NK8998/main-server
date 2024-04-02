@@ -28,7 +28,7 @@ def hsl_to_hex(h, s, l):
 
 async def generate_pfp(user_id, display_name, channel_id):
     # Define the command
-    letter = display_name[0]
+    letter = display_name[0].upper()
     number = random.randint(0, 359)
     hex = hsl_to_hex(number, 80, 52)
     
@@ -37,8 +37,8 @@ async def generate_pfp(user_id, display_name, channel_id):
     os.chdir(script_directory)
 
     command = [
-    "ffmpeg", "-loglevel", "debug", "-f", "lavfi", "-i", f"color=c=0x{hex}:s=88x88:d=5", "-vf",
-    f"[in]drawtext=fontfile=./_font/RobotoFlex-Regular.ttf:fontsize=50:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text={letter}[out]",
+    "ffmpeg", "-loglevel", "debug", "-f", "lavfi", "-i", f"color=c=0x{hex}:s=176x176:d=5", "-vf",
+    f"[in]drawtext=fontfile=./_font/RobotoFlex-Regular.ttf:fontsize=100:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text={letter}[out]",
     "-frames:v", "1", f"{user_id}.png"
     ]
 
