@@ -53,7 +53,7 @@ async def generate_pfp(user_id, display_name, channel_id):
     else:
         print("Command executed successfully")
         file = f"./{user_id}.png"
-        file_name = f"{user_id}.png"
+        file_name = f"{user_id}u.png"
         bucket = os.getenv('AWS_S3_USER_DATA_BUCKET')
         pfp_url = await upload_to_s3(file, bucket, user_id, file_name)
         os.remove(file)
@@ -74,7 +74,7 @@ async def upload_to_s3(file, bucket, user_id, file_name):
         return None
 
     # Generate the URL of the uploaded file
-    file_url = f"{os.getenv('CLOUDFRONT_URL')}/{user_id}/{file_name}"
+    file_url = f"{os.getenv('CLOUDFRONT_URL_USER_DATA')}/{user_id}/{file_name}"
 
     return file_url
 
