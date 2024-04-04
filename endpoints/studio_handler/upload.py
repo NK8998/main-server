@@ -121,7 +121,6 @@ async def get_video_info(file, name):
     # Save the file
     file.save(file_path)
     return file_path
-    print(file_path)  
 
 # async def get_video_info(file, name):
 #    # Get the absolute path to the directory of the current script
