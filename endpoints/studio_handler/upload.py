@@ -94,8 +94,9 @@ async def upload_file():
 
             # if video_info is None:
             #     return 'Failed to get video information.', 400
+            await upload_video_metadata(videoId, title, channelId, handle, display_name)
             await upload_to_s3(video_path, os.getenv('AWS_S3_UNPROCESSED_BUCKET'), videoId)
-            await upload_to_supabase(videoId, title, channelId, handle, display_name)
+            await upload_to_supabase_queue(videoId)
             if os.path.exists(video_path):
                 os.remove(video_path)
                 
@@ -175,10 +176,13 @@ async def get_video_info(file, name):
 #         if os.path.exists(file_path):
 #             os.remove(file_path)
 
-async def upload_to_supabase(videoId, title, channelId, handle, display_name):
+async def upload_video_metadata(videoId, title, channelId, handle, display_name):
+    data, count =  supabase.table('video-metadata').insert({"video_id": videoId, "title": title, "channel_id": channelId, "display_name": display_name, "handle": handle}).execute()
+    print(data)
+
+async def upload_to_supabase_queue(videoId):
     #check if instance is indeed on
     instance_id = await get_instance_id()
-    data, count =  supabase.table('video-metadata').insert({"video_id": videoId, "title": title, "channel_id": channelId, "display_name": display_name, "handle": handle}).execute()
     data2, count2 =  supabase.table('video-queue').insert({"video_id": videoId, "state": "unprocessed", 'instance_id': instance_id}).execute()
 
     print(data2)

@@ -6,6 +6,8 @@ from supabase import create_client
 from dotenv import load_dotenv
 import uuid
 from .compress_thumb import compress_thumb
+from flask import jsonify
+
 load_dotenv()
 import os
 
@@ -59,44 +61,48 @@ async def upload_to_s3(file, bucket, videoId, ):
     return file_url
 
 
-async def upload_to_supabase(file_url, video_id, description_string, category, video_settings):
-    data, count = supabase.table('video-metadata').update({'preferred_thumbnail_url': file_url}).eq('video_id', video_id).execute()
+async def upload_to_supabase(thumbnail_url, video_id, description_string, category, video_settings, visibility, title):
+    data, count = supabase.table('video-metadata').update({'preferred_thumbnail_url': thumbnail_url, 'title': title, 'description_string': description_string, 'video-settings': video_settings, 'visibility': visibility, 'category': category}).eq('video_id', video_id).execute()
     print(data)
 
 async def additional_video_data():
     try:
         print('reached')
-        file = request.files.get('thumbnail')
-        full_title = request.form.get('title')
+        file = request.files.get('thumbnailBlob')
+        thumbnailString = request.form.get('thumbnailString')
+        title = request.form.get('title')
         video_id = request.form.get('videoId')
-        description_string = request.form.get('descriptionString')
-        category = request.form.get('category')
-        video_settings = request.form.get('videoSettings')
-
-        name_parts = os.path.splitext(full_title)
-        extension = name_parts[1].lower()
+        description_string = request.form.get('descriptionString', None)
+        category = request.form.get('category', None)
+        video_settings = request.form.get('videoSettings', {})
+        visibility = request.form.get('visibility', None)
+   
+        if not video_id or not title:
+            return 'video must have title and Id', 400
         # Generate a random UUID
         random_id = uuid.uuid4()
 
         # Convert the UUID to a string and remove hyphens to make it suitable for use as a file ID
         random_id_str = str(random_id).replace("-", "")
 
-        validate_message = validate_file(extension)
-        if validate_message == 'invalid':
-            return 'Invalid file type.', 400
+        thumbnail_url = thumbnailString
 
-        file_url = ''
         if file:
+            full_title = file.filename
+            name_parts = os.path.splitext(full_title)
+            extension = name_parts[1].lower()
+            validate_message = validate_file(extension)
+            if validate_message == 'invalid':
+                return 'Invalid file type.', 400
             img_path = await move_thumb(file, random_id_str)
             compressed_thumb_path = await compress_thumb(img_path, random_id_str)
             os.remove(img_path)
             bucket = os.getenv('AWS_PROCESSED_BUCKET')
-            file_url = await upload_to_s3(compressed_thumb_path, bucket, video_id)
+            thumbnail_url = await upload_to_s3(compressed_thumb_path, bucket, video_id)
             os.remove(compressed_thumb_path)
-            
-        await upload_to_supabase(file_url, video_id, description_string, category, video_settings)
+        await upload_to_supabase(thumbnail_url, video_id, description_string, category, video_settings, visibility, title)
 
-        return 'additional data saved', 200
+        return jsonify({'message': 'additional data saved', 'thumbnail_url': thumbnail_url}), 200
 
     except Exception as e:
         # Handle the error here
