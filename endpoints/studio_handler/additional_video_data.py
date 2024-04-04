@@ -59,16 +59,20 @@ async def upload_to_s3(file, bucket, videoId, ):
     return file_url
 
 
-async def upload_to_supabase(file_url, video_id):
+async def upload_to_supabase(file_url, video_id, description_string, category, video_settings):
     data, count = supabase.table('video-metadata').update({'preferred_thumbnail_url': file_url}).eq('video_id', video_id).execute()
     print(data)
 
 async def additional_video_data():
     try:
         print('reached')
-        file = request.files['thumbnail']
-        full_title = request.form['title']
-        video_id = request.form['videoId']
+        file = request.files.get('thumbnail')
+        full_title = request.form.get('title')
+        video_id = request.form.get('videoId')
+        description_string = request.form.get('descriptionString')
+        category = request.form.get('category')
+        video_settings = request.form.get('videoSettings')
+
         name_parts = os.path.splitext(full_title)
         extension = name_parts[1].lower()
         # Generate a random UUID
@@ -81,6 +85,7 @@ async def additional_video_data():
         if validate_message == 'invalid':
             return 'Invalid file type.', 400
 
+        file_url = ''
         if file:
             img_path = await move_thumb(file, random_id_str)
             compressed_thumb_path = await compress_thumb(img_path, random_id_str)
@@ -88,7 +93,8 @@ async def additional_video_data():
             bucket = os.getenv('AWS_PROCESSED_BUCKET')
             file_url = await upload_to_s3(compressed_thumb_path, bucket, video_id)
             os.remove(compressed_thumb_path)
-            await upload_to_supabase(file_url, video_id)
+            
+        await upload_to_supabase(file_url, video_id, description_string, category, video_settings)
 
         return 'additional data saved', 200
 
@@ -99,7 +105,6 @@ async def additional_video_data():
 
 
 
-    # compress thumb using pillow
     # allow thumbnail uploading, visibility, description, title, schedule, category picking, comment sorting, comment visibility
     
 
