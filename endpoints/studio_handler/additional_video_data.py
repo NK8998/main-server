@@ -69,7 +69,7 @@ async def additional_video_data():
     try:
         print('reached')
         file = request.files.get('thumbnailBlob')
-        thumbnailString = request.form.get('thumbnailString')
+        thumbnailString = request.form.get('thumbnailString', None)
         title = request.form.get('title')
         video_id = request.form.get('videoId')
         description_string = request.form.get('descriptionString', None)
