@@ -61,9 +61,24 @@ async def upload_to_s3(file, bucket, videoId, ):
     return file_url
 
 
-async def upload_to_supabase(thumbnail_url, video_id, description_string, category, video_settings, visibility, title):
-    data, count = supabase.table('video-metadata').update({'preferred_thumbnail_url': thumbnail_url, 'title': title, 'description_string': description_string, 'video-settings': video_settings, 'visibility': visibility, 'category': category}).eq('video_id', video_id).execute()
-    print(data)
+async def upload_to_supabase(thumbnail_url, video_id, description_string, category, video_settings, visibility, title, published_date):
+    # Create a dictionary with all the fields
+    fields = {
+        'preferred_thumbnail_url': thumbnail_url,
+        'title': title,
+        'description_string': description_string,
+        'video-settings': video_settings,
+        'visibility': visibility,
+        'category': category,
+        'published_date' : published_date
+    }
+
+    # Filter out the fields that are undefined or null
+    fields = {k: v for k, v in fields.items() if v is not None and v != 'undefined'}
+
+    # Update the table
+    data, count = supabase.table('video-metadata').update(fields).eq('video_id', video_id).execute()
+    return data
 
 async def additional_video_data():
     try:
@@ -76,6 +91,7 @@ async def additional_video_data():
         category = request.form.get('category', None)
         video_settings = request.form.get('videoSettings', {})
         visibility = request.form.get('visibility', None)
+        published_date = request.form.get('publishedDate', None)
    
         if not video_id or not title:
             return 'video must have title and Id', 400
@@ -100,9 +116,9 @@ async def additional_video_data():
             bucket = os.getenv('AWS_PROCESSED_BUCKET')
             thumbnail_url = await upload_to_s3(compressed_thumb_path, bucket, video_id)
             os.remove(compressed_thumb_path)
-        await upload_to_supabase(thumbnail_url, video_id, description_string, category, video_settings, visibility, title)
+        data =  await upload_to_supabase(thumbnail_url, video_id, description_string, category, video_settings, visibility, title, published_date)
 
-        return jsonify({'message': 'additional data saved', 'thumbnail_url': thumbnail_url}), 200
+        return jsonify({'message': 'additional data saved', 'data': data}), 200
 
     except Exception as e:
         # Handle the error here
