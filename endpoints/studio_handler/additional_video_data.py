@@ -78,7 +78,7 @@ async def upload_to_supabase(thumbnail_url, video_id, description_string, catego
 
     # Update the table
     data, count = supabase.table('video-metadata').update(fields).eq('video_id', video_id).execute()
-    return data
+    return data[1][0]
 
 async def additional_video_data():
     try:
@@ -89,7 +89,7 @@ async def additional_video_data():
         video_id = request.form.get('videoId')
         description_string = request.form.get('descriptionString', None)
         category = request.form.get('category', None)
-        video_settings = request.form.get('videoSettings', {})
+        video_settings = request.form.get('videoSettings', None)
         visibility = request.form.get('visibility', None)
         published_date = request.form.get('publishedDate', None)
    
