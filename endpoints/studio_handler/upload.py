@@ -177,7 +177,7 @@ async def get_video_info(file, name):
 #             os.remove(file_path)
 
 async def upload_video_metadata(videoId, title, channelId, handle, display_name):
-    data, count =  supabase.table('video-metadata').insert({"video_id": videoId, "title": title, "channel_id": channelId, "display_name": display_name, "handle": handle, 'filename': title}).execute()
+    data, count =  supabase.table('video-metadata').insert({"video_id": videoId, "title": title, "channel_id": channelId, "display_name": display_name, "handle": handle, 'filename': title, 'visibility': 'Draft'}).execute()
     print(data)
 
 async def upload_to_supabase_queue(videoId):
