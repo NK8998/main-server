@@ -75,7 +75,8 @@ async def upload_file():
         display_name = request.form['displayName']
         handle = request.form['handle']
         full_title = request.form['title']
-        channelId = request.form['channelId']
+        channel_id = request.form['channelId']
+        pfp_url = request.form['pfp_url']
         name_parts = os.path.splitext(full_title)
         extension = name_parts[1].lower()
         title = name_parts[0]
@@ -94,7 +95,7 @@ async def upload_file():
 
             # if video_info is None:
             #     return 'Failed to get video information.', 400
-            await upload_video_metadata(videoId, title, channelId, handle, display_name)
+            await upload_video_metadata(videoId, title, channel_id, handle, display_name, pfp_url)
 
             await upload_to_s3(video_path, os.getenv('AWS_S3_UNPROCESSED_BUCKET'), videoId)
             await upload_to_supabase_queue(videoId)
@@ -176,8 +177,8 @@ async def get_video_info(file, name):
 #         if os.path.exists(file_path):
 #             os.remove(file_path)
 
-async def upload_video_metadata(videoId, title, channelId, handle, display_name):
-    data, count =  supabase.table('video-metadata').insert({"video_id": videoId, "title": title, "channel_id": channelId, "display_name": display_name, "handle": handle, 'filename': title, 'visibility': 'Draft'}).execute()
+async def upload_video_metadata(videoId, title, channel_id, handle, display_name, pfp_url):
+    data, count =  supabase.table('video-metadata').insert({"video_id": videoId, "title": title, "channel_id": channel_id, "display_name": display_name, "handle": handle, 'filename': title, 'visibility': 'Draft', 'pfp_url' : pfp_url}).execute()
     print(data)
 
 async def upload_to_supabase_queue(videoId):
