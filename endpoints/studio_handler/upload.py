@@ -76,7 +76,7 @@ async def upload_file():
         handle = request.form['handle']
         full_title = request.form['title']
         channel_id = request.form['channelId']
-        pfp_url = request.form['pfp_url']
+        pfp_url = request.form['pfpUrl']
         name_parts = os.path.splitext(full_title)
         extension = name_parts[1].lower()
         title = name_parts[0]
