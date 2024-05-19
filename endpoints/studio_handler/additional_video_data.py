@@ -78,7 +78,10 @@ async def upload_to_supabase(thumbnail_url, video_id, description_string, catego
 
     # Update the table
     data, count = supabase.table('video-metadata').update(fields).eq('video_id', video_id).execute()
-    return data[1][0]
+    if data and len(data) > 1:
+        return data[1][0]
+    else:
+        return None
 
 async def additional_video_data():
     try:
