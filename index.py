@@ -17,6 +17,7 @@ from endpoints.oauth_handler.app_auth import verify_cookie, set_cookies, web_app
 from endpoints.studio_handler.upload import upload_file  
 from endpoints.studio_handler.additional_video_data import additional_video_data
 from endpoints.studio_handler.get_users_videos import get_users_videos
+from endpoints.studio_handler.delete_video import initiate_video_deletion
 from endpoints.client_handler.get_playing_video import get_playing_video
 from endpoints.client_handler.get_recommended_videos import get_recommended_videos
 
@@ -35,6 +36,7 @@ app.route('/Web-App-Auth', methods=['GET', "OPTIONS"])(web_app_auth)
 app.route('/upload', methods=['POST', 'GET', 'OPTIONS'])(upload_file)
 app.route('/additional-video-data', methods=['POST', 'GET', 'OPTIONS'])(additional_video_data)
 app.route('/get-users-videos', methods=['POST', 'GET', 'OPTIONS'])(get_users_videos)
+app.route('/delete-video', methods=['POST', 'GET', 'OPTIONS'])(initiate_video_deletion)
 # studio
 
 # client
