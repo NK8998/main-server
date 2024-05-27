@@ -62,25 +62,28 @@ async def upload_to_s3(file, bucket, videoId, ):
 
 
 async def upload_to_supabase(thumbnail_url, video_id, description_string, category, video_settings, visibility, title, published_date):
-    # Create a dictionary with all the fields
-    fields = {
-        'preferred_thumbnail_url': thumbnail_url,
-        'title': title,
-        'description_string': description_string,
-        'video-settings': video_settings,
-        'visibility': visibility,
-        'category': category,
-        'published_date' : published_date
-    }
 
-    # Filter out the fields that are undefined or null
-    fields = {k: v for k, v in fields.items() if v is not None and v != 'undefined'}
+    try:
+        # Create a dictionary with all the fields
+        fields = {
+            'preferred_thumbnail_url': thumbnail_url,
+            'title': title,
+            'description_string': description_string,
+            'video-settings': video_settings,
+            'visibility': visibility,
+            'category': category,
+            'published_date' : published_date
+        }
 
-    # Update the table
-    data, count = supabase.table('video-metadata').update(fields).eq('video_id', video_id).execute()
-    if data and len(data) > 1:
+        # Filter out the fields that are undefined or null
+        fields = {k: v for k, v in fields.items() if v is not None and v != 'undefined'}
+
+        # Update the table
+        data, count = supabase.table('video-metadata').update(fields).eq('video_id', video_id).execute()
+
         return data[1][0]
-    else:
+ 
+    except IndexError:
         return None
 
 async def additional_video_data():
