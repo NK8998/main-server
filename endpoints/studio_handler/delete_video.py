@@ -35,8 +35,7 @@ async def delete_video_from_AWS(video_id):
     
     response = s3_client.meta.client.list_objects_v2(Bucket=processed_bucket, Prefix=prefix)
 
-    if response :
-        print(response['Contents'])
+    if response['contents']:
         for object in response['Contents']:
             print('Deleting', object['Key'])
             delete_tasks.append(s3_client.meta.client.delete_object(Bucket=processed_bucket, Key=object['Key']))
