@@ -30,17 +30,15 @@ async def delete_video_from_AWS(video_id):
 
     # delete from original bucket
     s3_client.meta.client.delete_object(Bucket=unprocessed_bucket, Key=video_id)
-
-    delete_tasks = []
     
     response = s3_client.meta.client.list_objects_v2(Bucket=processed_bucket, Prefix=prefix)
 
-    if response['contents']:
-        for object in response['Contents']:
-            print('Deleting', object['Key'])
-            delete_tasks.append(s3_client.meta.client.delete_object(Bucket=processed_bucket, Key=object['Key']))
-
-    await asyncio.gather(*delete_tasks)
+    if response.get('Contents'):
+        for obj in response['Contents']:
+            key = obj.get('Key')
+            if key:
+                print(f"Deleting {key}")
+                s3_client.meta.client.delete_object(Bucket=processed_bucket, Key=key)
 
     print('done deleteing')
 
@@ -62,8 +60,8 @@ async def delete_video_from_supabase(video_id):
 
 async def initiate_video_deletion():
     try:
-        ids_array = request.form.get('ids')
-        # ids_array = ids.split(',')
+        # ids_array = request.form.get('ids')
+        ids_array = request.form.get('ids').split(',')
         
         print( ids_array)
         tasks = []
