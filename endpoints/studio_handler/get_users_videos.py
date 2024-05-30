@@ -13,6 +13,9 @@ async def get_users_videos():
     cookie_suid = request.cookies.get('SUID')
     cookie_scid = request.cookies.get('SCID')
     print(cookie_suid)
+    if not cookie_scid or not cookie_suid:
+        return 'no credentials', 400
+    
     try:
         response = supabase.table('video-metadata').select('*').eq('type', 'video').eq('channel_id', cookie_scid).execute()
         return jsonify(response.data), 200

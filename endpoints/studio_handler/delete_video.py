@@ -1,14 +1,11 @@
 from flask import request
 import boto3
-from botocore.exceptions import NoCredentialsError
-from boto3.s3.transfer import S3Transfer, TransferConfig
 import os
-from pprint import pprint 
 from supabase import create_client
 from dotenv import load_dotenv
 import asyncio
-import aioboto3
-import json
+from botocore.config import Config
+
 
 load_dotenv()
 
@@ -21,9 +18,17 @@ async def delete_video_from_AWS(video_id):
     print(video_id)
 
     prefix  =f'{video_id}/'
+    s3_config = Config(
+    retries={
+        'max_attempts': 10,
+        'mode': 'standard'
+    },
+    max_pool_connections=50  # Adjust as needed
+    )
     s3_client = boto3.resource('s3', 
                                 aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+                                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                                config=s3_config)
     
     unprocessed_bucket = os.getenv('AWS_S3_UNPROCESSED_BUCKET')
     processed_bucket = os.getenv('AWS_PROCESSED_BUCKET')
@@ -59,9 +64,16 @@ async def delete_video_from_supabase(video_id):
 
 
 async def initiate_video_deletion():
+    cookie_suid = request.cookies.get('SUID')
+    cookie_scid = request.cookies.get('SCID')
+    # get session id
+
+    if not cookie_scid or not cookie_suid:
+        return 'no credentials', 400
+    
     try:
         # ids_array = request.form.get('ids')
-        ids_array = request.form.get('ids').split(',')
+        ids_array = request.form.get('ids')
         
         print( ids_array)
         tasks = []
