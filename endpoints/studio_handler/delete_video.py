@@ -73,7 +73,7 @@ async def initiate_video_deletion():
     
     try:
         # ids_array = request.form.get('ids')
-        ids_array = request.form.get('ids')
+        ids_array = request.form.get('ids').split(',')
         
         print( ids_array)
         tasks = []
