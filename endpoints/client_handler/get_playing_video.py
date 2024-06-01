@@ -14,9 +14,9 @@ def get_playing_video():
     try:
         response = supabase.table('video-metadata').select("*").eq('video_id', video_id).execute()
         if not response.data or not response.data[0]:
-            return jsonify({'message': 'no data found'}), 200
+            return jsonify({'message': 'no data found', 'video': None}), 200
         
-        return jsonify(response.data[0]), 200
+        return jsonify({'message': 'video found', 'video': response.data[0]}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
