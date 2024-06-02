@@ -1,4 +1,4 @@
-from flask import request, jsonify, make_response, redirect
+from flask import request, jsonify
 import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -12,11 +12,20 @@ supabase: Client = create_client(url, key)
 def get_playing_video():
     video_id = request.form['videoId']
     try:
-        response = supabase.table('video-metadata').select("*").eq('video_id', video_id).execute()
-        if not response.data or not response.data[0]:
+        seletcted_video = supabase.table('video-metadata').select("*").eq('video_id', video_id).execute()
+
+        if not seletcted_video.data or not seletcted_video.data[0]:
             return jsonify({'message': 'no data found', 'video': None}), 200
         
-        return jsonify({'message': 'video found', 'video': response.data[0]}), 200
+        
+        recommended_arr = []
+        recommended_videos = supabase.table('video-metadata').select('*').limit(20).execute()
+
+        recommended_arr = recommended_videos.data
+        if not recommended_videos.data:
+            recommended_videos = []
+        
+        return jsonify({'message': 'video found', 'video':  seletcted_video.data[0], 'recommended': recommended_arr}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
