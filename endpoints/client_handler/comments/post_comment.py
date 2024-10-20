@@ -9,9 +9,6 @@ url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
-
-from flask import request, jsonify
-
 def post_comment():
     parent_id = request.form.get('parent_id')
     video_id = request.form.get('video_id')
@@ -20,7 +17,7 @@ def post_comment():
     user_id = request.form.get('user_id')
 
     if not video_id or not comment_id or not user_id:
-        return jsonify({"message": "Bad request: 'video_id', 'comment_id', and 'user_id' are required."}), 400
+        return jsonify({"message": "Bad request"}), 400
 
     try:
         data = {

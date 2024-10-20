@@ -21,15 +21,14 @@ from endpoints.studio_handler.delete_video import initiate_video_deletion
 from endpoints.client_handler.get_playing_video import get_playing_video
 from endpoints.client_handler.get_recommended_videos import get_recommended_videos
 from endpoints.client_handler.comments.post_comment import post_comment
+from endpoints.client_handler.comments.get_comments import get_comments
 
 
 app.route('/check', methods=['GET', "OPTIONS"])(check)
 
 # oauth
 app.route('/Verify-cookie', methods=['GET', "OPTIONS"])(verify_cookie)
-
 app.route('/Set-cookie', methods=['GET', "OPTIONS"])(set_cookies)
-
 app.route('/Web-App-Auth', methods=['GET', "OPTIONS"])(web_app_auth)
 # oauth
 
@@ -45,6 +44,7 @@ app.route('/verify-credentials', methods=['POST', 'GET', 'OPTIONS'])(verify_cred
 app.route('/browse', methods=['POST', 'GET', 'OPTIONS'])(get_recommended_videos)
 app.route('/watch-video', methods=['POST', 'GET', 'OPTIONS'])(get_playing_video)
 app.route('/post-comment', methods=['POST', 'GET', 'OPTIONS'])(post_comment)
+app.route('/get-comments', methods=['POST', 'GET', 'OPTIONS'])(get_comments)
 # client
 
 
