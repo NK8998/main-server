@@ -20,6 +20,7 @@ from endpoints.studio_handler.get_users_videos import get_users_videos
 from endpoints.studio_handler.delete_video import initiate_video_deletion
 from endpoints.client_handler.get_playing_video import get_playing_video
 from endpoints.client_handler.get_recommended_videos import get_recommended_videos
+from endpoints.client_handler.comments.post_comment import post_comment
 
 
 app.route('/check', methods=['GET', "OPTIONS"])(check)
@@ -43,6 +44,7 @@ app.route('/delete-video', methods=['POST', 'GET', 'OPTIONS'])(initiate_video_de
 app.route('/verify-credentials', methods=['POST', 'GET', 'OPTIONS'])(verify_credentials)
 app.route('/browse', methods=['POST', 'GET', 'OPTIONS'])(get_recommended_videos)
 app.route('/watch-video', methods=['POST', 'GET', 'OPTIONS'])(get_playing_video)
+app.route('/post-comment', methods=['POST', 'GET', 'OPTIONS'])(post_comment)
 # client
 
 
