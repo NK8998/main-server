@@ -1,5 +1,7 @@
+import aioboto3.session
 from flask import request
 import boto3
+import aioboto3
 import os
 from supabase import create_client
 from dotenv import load_dotenv
@@ -14,38 +16,29 @@ key = os.getenv("SUPABASE_KEY")
 supabase = create_client(url, key)
 
 
+import os
+import aioboto3
+
 async def delete_video_from_AWS(video_id):
     print(video_id)
-
-    prefix  =f'{video_id}/'
-    s3_config = Config(
-    retries={
-        'max_attempts': 10,
-        'mode': 'standard'
-    },
-    max_pool_connections=50  # Adjust as needed
-    )
-    s3_client = boto3.resource('s3', 
-                                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-                                config=s3_config)
-    
     unprocessed_bucket = os.getenv('AWS_S3_UNPROCESSED_BUCKET')
     processed_bucket = os.getenv('AWS_PROCESSED_BUCKET')
+    prefix = f'{video_id}/'
 
-    # delete from original bucket
-    s3_client.meta.client.delete_object(Bucket=unprocessed_bucket, Key=video_id)
-    
-    response = s3_client.meta.client.list_objects_v2(Bucket=processed_bucket, Prefix=prefix)
+    async def delete_objects(bucket_name, prefix):
+        # Create a session for each bucket operation
+        session = aioboto3.Session()
+        async with session.resource('s3') as s3:
+            bucket = await s3.Bucket(bucket_name)
+            # Filter objects by prefix and delete in batch
+            await bucket.objects.filter(Prefix=prefix).delete()
 
-    if response.get('Contents'):
-        for obj in response['Contents']:
-            key = obj.get('Key')
-            if key:
-                print(f"Deleting {key}")
-                s3_client.meta.client.delete_object(Bucket=processed_bucket, Key=key)
+    # Delete objects from both unprocessed and processed buckets
+    await delete_objects(unprocessed_bucket, video_id)
+    await delete_objects(processed_bucket, prefix)
 
-    print('done deleteing')
+    print('Done deleting')
+
 
 
 
