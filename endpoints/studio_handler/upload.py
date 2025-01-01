@@ -184,7 +184,7 @@ async def upload_video_metadata(videoId, title, channel_id, handle, display_name
 async def upload_to_supabase_queue(videoId):
     #check if instance is indeed on
     instance_id = await get_instance_id()
-    data2, count2 =  supabase.table('video-queue').insert({"video_id": videoId, "state": "unprocessed", 'instance_id': instance_id}).execute()
+    data2, count2 =  supabase.table('video-queue').insert({"video_id": videoId, "state": "unprocessed"}).execute()
 
     print(data2)
 
