@@ -62,7 +62,7 @@ async def web_app_auth():
     supabase = await get_supabase_client()
     display_name = request.args.get('displayName')
     user_id = request.args.get('userID')
-    redirect = request.args.get('redirect')
+    redirect_url = request.args.get('redirect')
     channel_id = "UC" + user_id  
     # first check if their pfp exists 
     data, count = supabase.table("user-info").select('pfp_url').eq('user_id', user_id).execute()
@@ -71,7 +71,7 @@ async def web_app_auth():
         print('no data')
         await generate_pfp(user_id, display_name, channel_id)
 
-    response = make_response(redirect(f"{redirect}"))
+    response = make_response(redirect(f"{redirect_url}"))
     
     # Set the cookies to expire in 30 days
     expires = datetime.now()
