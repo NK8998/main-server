@@ -7,7 +7,7 @@ from server_globals.secrets import get_secret
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=['http://localhost:5175', 'http://localhost:5173', 'http://localhost:5174', 'https://client-red-nine.vercel.app/', 'https://studio-chi-one.vercel.app/', 'https://o-auth-alpha.vercel.app/'], supports_credentials=True)
+CORS(app, origins=['http://localhost:5175', 'http://localhost:5173', 'http://localhost:5174', 'https://client-red-nine.vercel.app', 'https://studio-chi-one.vercel.app', 'https://o-auth-alpha.vercel.app'], supports_credentials=True)
 
 @app.before_request
 def basic_authentication():
