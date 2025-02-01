@@ -1,23 +1,15 @@
 from flask import request, jsonify, make_response, redirect
 from datetime import datetime, timedelta
-from supabase import create_client
-import os
 from dotenv import load_dotenv
 import os
-from dotenv import load_dotenv
-from supabase import create_client
 from .generate_user_data import generate_pfp
+from server_globals.SDKs import get_supabase_client
 
 
 load_dotenv()
 
-
-
-url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_KEY")
-supabase = create_client(url, key)
-
-def verify_credentials():
+async def verify_credentials():
+    supabase = await get_supabase_client()
     cookie_suid = request.cookies.get('SUID')
     data, count = supabase.table("user-info").select('*').eq('user_id', cookie_suid).execute()
 
@@ -28,16 +20,18 @@ def verify_credentials():
 
 
 
-def verify_cookie():
+async def verify_cookie():
     cookie_scid = request.cookies.get('SCID')
     cookie_suid = request.cookies.get('SUID')
     storage_scid = request.args.get('SCID')
     storage_suid = request.args.get('SUID')
 
+    supabase = await get_supabase_client()
+
     if not cookie_scid or not cookie_suid:
         return jsonify({'redirect': True}), 200
 
-    if cookie_scid != storage_scid or cookie_suid != storage_suid:
+    if (cookie_scid and cookie_scid != storage_scid) or (cookie_suid and cookie_suid != storage_suid):
         return jsonify({'message': "cookie mismatch"}), 500
     data, count = supabase.table("user-info").select('*').eq('user_id', cookie_suid).execute()
 
@@ -65,6 +59,7 @@ def set_cookies():  # Function name change for clarity
 
 
 async def web_app_auth():
+    supabase = await get_supabase_client()
     display_name = request.args.get('displayName')
     user_id = request.args.get('userID')
     target = request.args.get('target')

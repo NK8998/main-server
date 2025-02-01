@@ -1,3 +1,6 @@
 # Exclude all .env files
 .env
 .env.*
+
+videos/
+images/

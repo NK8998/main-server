@@ -1,21 +1,15 @@
 from flask import request
 import boto3
 from botocore.exceptions import NoCredentialsError
-from boto3.s3.transfer import S3Transfer, TransferConfig
+from boto3.s3.transfer import TransferConfig
 import os
-import ffmpeg
 from pprint import pprint 
-from supabase import create_client
 from dotenv import load_dotenv
 import threading
 import random
+from server_globals.SDKs import get_supabase_client, get_boto3_client
+from server_globals.secrets import get_secret
 load_dotenv()
-
-
-url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_KEY")
-supabase = create_client(url, key)
-
 
 def validate_file(extension):
 
@@ -25,17 +19,6 @@ def validate_file(extension):
         return 'invalid'
     
     return 'valid'
-
-# def categorize_transcoding_time(video_info):
-#     duration = float(video_info['duration'])
-#     bitrate = video_info['video_bitrate_kbps']
-
-#     if duration < 5 * 60 and bitrate < 1500:
-#         return 'short'
-#     elif duration < 30 * 60 and bitrate < 3000:
-#         return 'moderate'
-#     else:
-#         return 'long'
 
 async def get_instance_id():
     client = boto3.client(
@@ -64,6 +47,7 @@ async def get_instance_id():
 
 async def upload_file():
     try:
+        secrets = await get_secret("hive_credentials")
         # pprint(request.files)
         pprint({'formData': request.form})
 
@@ -88,16 +72,9 @@ async def upload_file():
         if file:
             name = f'v{videoId}{title}'
             video_path = await get_video_info(file, name)
-            # if video_info:
-            #     pprint(video_info)
-            #     # category = categorize_transcoding_time(video_info)
-
-
-            # if video_info is None:
-            #     return 'Failed to get video information.', 400
             await upload_video_metadata(videoId, title, channel_id, handle, display_name, pfp_url)
 
-            await upload_to_s3(video_path, os.getenv('AWS_S3_UNPROCESSED_BUCKET'), videoId)
+            await upload_to_s3(video_path, secrets['AWS_S3_UNPROCESSED_BUCKET'], videoId)
             await upload_to_supabase_queue(videoId)
             if os.path.exists(video_path):
                 os.remove(video_path)
@@ -124,66 +101,14 @@ async def get_video_info(file, name):
     file.save(file_path)
     return file_path
 
-# async def get_video_info(file, name):
-#    # Get the absolute path to the directory of the current script
-#     current_dir = os.path.dirname(os.path.abspath(__file__))
-
-#     # Get the absolute path to the 'videos' directory
-#     videos_dir = os.path.join(current_dir, 'videos')
-
-#     # Ensure 'videos' directory exists
-#     os.makedirs(videos_dir, exist_ok=True)
-
-#     # Create the path for the file inside the 'videos' directory
-#     file_path = os.path.join(videos_dir, name)
-
-#     # Save the file
-#     file.save(file_path)
-#     print(file_path)
-
-#     try:
-#         probe = ffmpeg.probe(file_path)['streams'] 
-
-#         video_stream = next((stream for stream in probe if stream['codec_type'] == 'video'), None)
-#         if video_stream is None:
-#             print("No video stream found")
-#             return None
-
-#         width = video_stream['width']
-#         height = video_stream['height']
-#         r_frame_rate = video_stream['r_frame_rate']
-#         bit_rate = video_stream['bit_rate'] if 'bit_rate' in video_stream else None
-#         codec_name = video_stream['codec_name']
-#         duration = video_stream['duration']
-
-#         numerator, denominator = map(int, r_frame_rate.split('/'))
-#         framerate = numerator / denominator
-
-#         # Extract the video bitrate in kilobits per second (kbps)
-#         video_bitrate_kbps = round(int(bit_rate) / 1000) if bit_rate else None
-
-#         return {
-#             'width': width,
-#             'height': height,
-#             'framerate': framerate,
-#             'video_bitrate_kbps': video_bitrate_kbps,
-#             'codec_name': codec_name,
-#             'duration': duration
-#         }
-#     except Exception as e:
-#         print("Failed to get video information:", str(e))
-#         return None
-#     finally:
-#         if os.path.exists(file_path):
-#             os.remove(file_path)
-
 async def upload_video_metadata(videoId, title, channel_id, handle, display_name, pfp_url):
+    supabase = await get_supabase_client()
     data, count =  supabase.table('video-metadata').insert({"video_id": videoId, "title": title, "channel_id": channel_id, "display_name": display_name, "handle": handle, 'filename': title, 'visibility': 'Draft', 'pfp_url' : pfp_url}).execute()
     print(data)
 
 async def upload_to_supabase_queue(videoId):
     #check if instance is indeed on
-    instance_id = await get_instance_id()
+    supabase = await get_supabase_client()
     data2, count2 =  supabase.table('video-queue').insert({"video_id": videoId, "state": "unprocessed"}).execute()
 
     print(data2)
@@ -203,17 +128,36 @@ class ProgressPercentage(object):
             print(f"{self._filename}  {percentage}%")
 
 async def upload_to_s3(file, bucket, videoId):
-    s3_resource = boto3.resource('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                             aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+    """
+    Uploads a file to an S3 bucket using the async boto3 client.
 
-    config = TransferConfig(use_threads=True, multipart_threshold=1024**2, multipart_chunksize=1024**2)
+    :param file: The file to upload
+    :param bucket: The S3 bucket name
+    :param videoId: The object key for the file in S3
+    :return: The S3 file URL if successful, otherwise False
+    """
+    secrets = await get_secret("hive_credentials")
+    
+    s3_client = await get_boto3_client('s3')
+
+    # config = TransferConfig(
+    #     use_threads=True,
+    #     multipart_threshold=1024**2,
+    #     multipart_chunksize=1024**2
+    # )
+
+    file_path = f"{videoId}/"
 
     try:
-        s3_resource.meta.client.upload_file(file, bucket, videoId, Config=config, Callback=ProgressPercentage(file))
+        await s3_client.upload_file(file, bucket, videoId, Callback=ProgressPercentage(file))
     except NoCredentialsError:
         print("Credentials not available")
         return False
+    finally:
+        await s3_client.close()  # Ensure we properly close the session
 
-    return True
+    file_url = f"{secrets['CLOUDFRONT_URL_VIDEO_DATA']}/{file_path}"
+    return file_url
+
 
 

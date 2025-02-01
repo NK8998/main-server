@@ -1,28 +1,18 @@
-import aioboto3.session
 from flask import request
-import boto3
 import aioboto3
-import os
-from supabase import create_client
 from dotenv import load_dotenv
 import asyncio
-from botocore.config import Config
+from server_globals.SDKs import get_supabase_client
+from server_globals.secrets import get_secret
 
 
 load_dotenv()
 
-url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_KEY")
-supabase = create_client(url, key)
-
-
-import os
-import aioboto3
-
 async def delete_video_from_AWS(video_id):
     print(video_id)
-    unprocessed_bucket = os.getenv('AWS_S3_UNPROCESSED_BUCKET')
-    processed_bucket = os.getenv('AWS_PROCESSED_BUCKET')
+    secrets = await get_secret('hive_credentials')
+    unprocessed_bucket = secrets['AWS_S3_UNPROCESSED_BUCKET']
+    processed_bucket = secrets['AWS_PROCESSED_BUCKET']
     prefix = f'{video_id}/'
 
     async def delete_objects(bucket_name, prefix):
@@ -46,6 +36,7 @@ async def delete_video_from_AWS(video_id):
 async def delete_video_from_supabase(video_id):
     print(video_id)
 
+    supabase = await get_supabase_client()
     try:
         data, count = supabase.table('video-metadata').delete().match({'video_id': video_id}).execute()
         return data[1][0]

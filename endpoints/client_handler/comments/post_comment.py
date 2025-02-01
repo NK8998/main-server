@@ -1,15 +1,11 @@
-from flask import request, jsonify, make_response, redirect
-import os
-from supabase import create_client, Client
+from flask import request, jsonify
 from pprint import pprint 
 from dotenv import load_dotenv
+from server_globals.SDKs import get_supabase_client
 load_dotenv()
 
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
-supabase: Client = create_client(url, key)
-
-def post_comment():
+async def post_comment():
+    supabase = await get_supabase_client()
     parent_id = request.form.get('parent_id')
     video_id = request.form.get('video_id')
     body = request.form.get('body')

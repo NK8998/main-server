@@ -1,15 +1,11 @@
 from flask import request, jsonify
-import os
-from supabase import create_client, Client
 from dotenv import load_dotenv
-from pprint import pprint 
+from server_globals.SDKs import get_supabase_client
 load_dotenv()
 
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
-supabase: Client = create_client(url, key)
 
-def get_playing_video():
+async def get_playing_video():
+    supabase = await get_supabase_client()
     video_id = request.form['videoId']
     try:
         selected_video = supabase.table('video-metadata').select("*").eq('video_id', video_id).execute()

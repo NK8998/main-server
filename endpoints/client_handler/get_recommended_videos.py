@@ -1,15 +1,11 @@
-from flask import request, jsonify, make_response, redirect
-import os
-from supabase import create_client, Client
+from flask import request, jsonify
 from pprint import pprint 
 from dotenv import load_dotenv
+from server_globals.SDKs import get_supabase_client
 load_dotenv()
 
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
-supabase: Client = create_client(url, key)
-
 async def get_recommended_videos():
+    supabase = await get_supabase_client()
     cookie_suid = request.cookies.get('SUID')
     print(cookie_suid)
     try:

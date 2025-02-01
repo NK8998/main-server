@@ -5,6 +5,10 @@ async def compress_thumb(img_path, name, max_width= 720, max_height=404):
     # Open the image file
     image = Image.open(img_path)
 
+        # Convert RGBA to RGB if needed
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
+
     # Define the target size in bytes (50KB in this case)
     target_size_kb = 50
 
@@ -15,7 +19,7 @@ async def compress_thumb(img_path, name, max_width= 720, max_height=404):
 
     # Calculate the new dimensions while maintaining aspect ratio
     if original_width > max_width or original_height > max_height:
-        image.thumbnail((max_width, max_height), Image.ANTIALIAS)
+        image.thumbnail((max_width, max_height), Image.LANCZOS)
 
     #Get current scripts directory
     current_dir = os.path.dirname(os.path.abspath(__file__))

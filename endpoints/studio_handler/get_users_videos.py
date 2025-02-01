@@ -3,13 +3,13 @@ import os
 from supabase import create_client, Client
 from pprint import pprint 
 from dotenv import load_dotenv
+from server_globals.SDKs import get_supabase_client
 load_dotenv()
 
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
-supabase: Client = create_client(url, key)
+
 
 async def get_users_videos():
+    supabase = await get_supabase_client()
     cookie_suid = request.cookies.get('SUID')
     cookie_scid = request.cookies.get('SCID')
     print(cookie_suid)

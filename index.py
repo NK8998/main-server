@@ -1,7 +1,9 @@
+import asyncio
 from flask import Flask, request, Response
 from flask_cors import CORS
 from waitress import serve
 from dotenv import load_dotenv
+from server_globals.secrets import get_secret
 load_dotenv()
 
 app = Flask(__name__)
@@ -24,6 +26,8 @@ from endpoints.client_handler.get_playing_video import get_playing_video
 from endpoints.client_handler.get_recommended_videos import get_recommended_videos
 from endpoints.client_handler.comments.post_comment import post_comment
 from endpoints.client_handler.comments.get_comments import get_comments
+
+from server_globals.SDKs import get_boto3_client
 
 
 app.route('/check', methods=['GET', "OPTIONS"])(check)
@@ -49,5 +53,10 @@ app.route('/post-comment', methods=['POST', 'GET', 'OPTIONS'])(post_comment)
 app.route('/get-comments', methods=['POST', 'GET', 'OPTIONS'])(get_comments)
 # client
 
+
+async def init():
+    await get_secret('hive_credentials')
+# Run the async function before starting the server
+asyncio.run(init())
 
 serve(app, host='0.0.0.0', port=8220)
