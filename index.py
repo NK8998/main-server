@@ -20,7 +20,7 @@ CORS(app, origins=['http://localhost:5175',
 @app.before_request
 def basic_authentication():
     if request.method.lower() == 'options':
-        return Response()  # Or return Response('', status=200)
+        return Response(status=200)
 
 from endpoints.check import check
 from endpoints.oauth_handler.app_auth import verify_cookie, set_cookies, web_app_auth, verify_credentials
