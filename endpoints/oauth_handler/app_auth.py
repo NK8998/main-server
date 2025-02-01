@@ -78,10 +78,10 @@ async def web_app_auth():
     expires = expires + timedelta(days=90)
     
     response.set_cookie(
-        "SUID", user_id, expires=expires, httponly=True, secure=True, samesite="Lax"
+        "SUID", user_id, expires=expires, httponly=True, secure=True, samesite="None"
     )
     response.set_cookie(
-        "SCID", channel_id, expires=expires, httponly=True, secure=True, samesite="Lax"
+        "SCID", channel_id, expires=expires, httponly=True, secure=True, samesite="None"
     )
 
 
