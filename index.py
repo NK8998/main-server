@@ -12,7 +12,11 @@ CORS(app, origins=['http://localhost:5175',
                    'http://localhost:5174', 
                    'https://client-red-nine.vercel.app', 
                    'https://studio-chi-one.vercel.app', 
-                   'https://o-auth-alpha.vercel.app'
+                   'https://o-auth-alpha.vercel.app',
+                   'https://streamgrid.site',
+                   'https://watch.streamgrid.site',
+                   'https://studio.streamgrid.site',
+                   'https://oauth.streamgrid.site',
                    ], 
                    allow_headers=['Content-Type'],
                    supports_credentials=True)
