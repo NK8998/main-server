@@ -23,16 +23,12 @@ async def verify_credentials():
 async def verify_cookie():
     cookie_scid = request.cookies.get('SCID')
     cookie_suid = request.cookies.get('SUID')
-    storage_scid = request.args.get('SCID')
-    storage_suid = request.args.get('SUID')
 
     supabase = await get_supabase_client()
 
     if not cookie_scid or not cookie_suid:
         return jsonify({'redirect': True}), 200
 
-    if (cookie_scid and cookie_scid != storage_scid) or (cookie_suid and cookie_suid != storage_suid):
-        return jsonify({'message': "cookie mismatch"}), 500
     data, count = supabase.table("user-info").select('*').eq('user_id', cookie_suid).execute()
 
 
